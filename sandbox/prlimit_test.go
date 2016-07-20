@@ -45,4 +45,12 @@ func Test_prlimit64(t *testing.T) {
 	} else {
 		t.Logf("Test #3 must be run without root permittion.")
 	}
+
+	// Test with a strange argument
+	err = prlimit64(myself, 233333, rlimit1, nil)
+	if err == nil {
+		t.Errorf("Test #4 failed. Error expected.")
+	} else {
+		t.Logf("Test #4 produced error: %s", err.Error());
+	}
 }
