@@ -21,4 +21,4 @@
 
 package sandbox
 
-const _REG_SYSCALL_ID = 15 // ORIG_EAX from sys/regs.h
+const _REG_SYSCALL_ID = 15 // ORIG_RAX from sys/regs.h
