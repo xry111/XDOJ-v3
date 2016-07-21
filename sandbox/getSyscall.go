@@ -25,22 +25,67 @@ import (
 	"syscall"
 	"unsafe"
 	"golang.org/x/sys/unix"
+	"sync"
 )
+
+var syscallIdAddr uintptr
+var once sync.Once
 
 // Wrap sys_ptrace to get syscall ID.
 func ptraceGetSyscall(pid int) (ID int, err error){
-	// value from sys/reg.h, sys/ptrace.h
-	const PTRACE_PEEKUSER = 3
 	var id uintptr
+
+	// We'll peek tracee's _kernel_ data structure.
+	// Get kernel information
+	getkerninfo := func() {
+		buf := &unix.Utsname{}
+		err := unix.Uname(buf)
+		if err != nil {
+			// I can't do anything meaningful when such a
+			// simple syscall has failed.
+			panic("Cannot determine kernel architechture.")
+		}
+
+		// seems slow, but it's only executed on init.
+		// nothing serious.
+		arch := []byte{}
+		for i := 0; i < len(buf.Machine); i++ {
+			if buf.Machine[i] == 0 {
+				break
+			}
+			arch = append(arch, byte(buf.Machine[i]))
+		}
+
+		switch string(arch) {
+			case "x86_64" :
+				syscallIdAddr = 15 * 8 // ORIG_RAX
+			case "i386", "i486", "i586", "i686" :
+				syscallIdAddr = 11 * 4 // ORIG_EAX
+			default:
+				syscallIdAddr = 0
+		}
+
+		if syscallIdAddr == 0 {
+			// I am too young, too simple to know this
+			// architechture. I should increase my knowledge
+			// level.
+			panic("What is this machine?")
+		}
+	}
+
+	once.Do(getkerninfo)
 
 	// In kernel the API of PTRACE_PEEKUSER is strange.
 	// We have to wrap it like Glibc.  See ptrace(2).
 	r1, _, e1 := unix.RawSyscall6(unix.SYS_PTRACE,
-	  PTRACE_PEEKUSER, uintptr(pid),
-	  _REG_SYSCALL_ID * unsafe.Sizeof(id),
-	  uintptr(unsafe.Pointer(&id)), 0, 0)
+	  unix.PTRACE_PEEKUSR, uintptr(pid),
+	  syscallIdAddr, uintptr(unsafe.Pointer(&id)), 0, 0)
+
 	if r1 < 0 {
 		err = syscall.Errno(e1)
 	}
-	return int(id), err
+
+	// When kernel and tracer are both 64-bit, but tracee
+	// is 32-bit, we have to throw additional high bits in rax.
+	return int(id & 0xff), err
 }
