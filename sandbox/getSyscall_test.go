@@ -19,8 +19,8 @@ func Test_ptraceGetSyscall(t *testing.T) {
 	// This is a small C program, call nanosleep(1000000) 100 times.
 	sysAttr := &syscall.SysProcAttr{Ptrace:true}
 	attr := &os.ProcAttr{Sys:sysAttr}
-	process, err := os.StartProcess("./nanosleep100.exe",
-	  []string{"nanosleep100.exe"}, attr)
+	process, err := os.StartProcess("./tracee/nsleep100.exe",
+	  []string{"nsleep100.exe"}, attr)
 
 	if err != nil {
 		t.Fatal("Cannot start process to trace. Error:", err.Error());
