@@ -81,7 +81,8 @@ func ptraceGetSyscall(pid int) (ID int, err error){
 	  unix.PTRACE_PEEKUSR, uintptr(pid),
 	  syscallIdAddr, uintptr(unsafe.Pointer(&id)), 0, 0)
 
-	if r1 < 0 {
+	// r1 is unsigned
+	if r1 == ^uintptr(0) {
 		err = syscall.Errno(e1)
 	}
 
