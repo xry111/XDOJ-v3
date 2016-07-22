@@ -9,7 +9,7 @@ import (
 )
 
 // Test ptraceGetSyscall
-func Test_ptraceGetSyscall(t *testing.T) {
+func do_Test_ptraceGetSyscall(t *testing.T, exe string, call int) {
 	// Disable Go runtime preempt, or I may be switched
 	// to another thread, who is not the tracer. Then we'll
 	// receive ESRCH (no such tracee).
@@ -20,8 +20,8 @@ func Test_ptraceGetSyscall(t *testing.T) {
 	// This is a small C program, call nanosleep(1000000) 100 times.
 	sysAttr := &syscall.SysProcAttr{Ptrace:true}
 	attr := &os.ProcAttr{Sys:sysAttr}
-	process, err := os.StartProcess("./tracee/nsleep100.exe",
-	  []string{"nsleep100.exe"}, attr)
+	process, err := os.StartProcess("./tracee/" + exe,
+	  []string{exe}, attr)
 
 	if err != nil {
 		t.Fatal("Cannot start process to trace. Error:", err.Error());
@@ -45,7 +45,7 @@ func Test_ptraceGetSyscall(t *testing.T) {
 			} else {
 				t.Logf("Get syscall with ID %d\n", syscall)
 			}
-			if syscall == unix.SYS_NANOSLEEP {
+			if syscall == call {
 				cnt++
 			}
 		}
@@ -70,4 +70,12 @@ func Test_ptraceGetSyscall(t *testing.T) {
 		t.Errorf("We have only traced %d syscall enter and leave, " +
 		  "expect 200.", cnt);
 	}
+}
+
+func Test_ptraceGetSyscall64(t *testing.T) {
+	do_Test_ptraceGetSyscall(t, "nsleep100.exe", 35)
+}
+
+func Test_ptraceGetSyscall32(t *testing.T) {
+	do_Test_ptraceGetSyscall(t, "nsleep100_32.exe", 162)
 }
