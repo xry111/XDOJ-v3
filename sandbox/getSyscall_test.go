@@ -14,6 +14,7 @@ func Test_ptraceGetSyscall(t *testing.T) {
 	// to another thread, who is not the tracer. Then we'll
 	// receive ESRCH (no such tracee).
 	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
 
 	// Create a process to trace.
 	// This is a small C program, call nanosleep(1000000) 100 times.
@@ -63,9 +64,6 @@ func Test_ptraceGetSyscall(t *testing.T) {
 			t.Fatalf("PtraceSyscall failed. Error:", err)
 		}
 	}
-
-	// enable preempt
-	runtime.UnlockOSThread()
 
 	// check the result
 	if cnt != 200 {
