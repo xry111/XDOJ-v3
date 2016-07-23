@@ -1,11 +1,11 @@
 package sandbox
 
 import (
-	"os"
-	"syscall"
 	"golang.org/x/sys/unix"
-	"testing"
+	"os"
 	"runtime"
+	"syscall"
+	"testing"
 )
 
 // Test ptraceGetSyscall
@@ -18,13 +18,13 @@ func do_Test_ptraceGetSyscall(t *testing.T, exe string, call int) {
 
 	// Create a process to trace.
 	// This is a small C program, call nanosleep(1000000) 100 times.
-	sysAttr := &syscall.SysProcAttr{Ptrace:true}
-	attr := &os.ProcAttr{Sys:sysAttr}
-	process, err := os.StartProcess("./tracee/" + exe,
-	  []string{exe}, attr)
+	sysAttr := &syscall.SysProcAttr{Ptrace: true}
+	attr := &os.ProcAttr{Sys: sysAttr}
+	process, err := os.StartProcess("./tracee/"+exe,
+		[]string{exe}, attr)
 
 	if err != nil {
-		t.Fatal("Cannot start process to trace. Error:", err.Error());
+		t.Fatal("Cannot start process to trace. Error:", err.Error())
 	}
 
 	pid := process.Pid
@@ -34,14 +34,14 @@ func do_Test_ptraceGetSyscall(t *testing.T, exe string, call int) {
 		var wstat unix.WaitStatus
 		_, err := unix.Wait4(pid, &wstat, 0, nil)
 		if err != nil {
-			t.Fatal("Wait4 failed. Error:", err.Error());
+			t.Fatal("Wait4 failed. Error:", err.Error())
 		}
 
 		if wstat.Stopped() && wstat.StopSignal() == unix.SIGTRAP {
 			// Try to get syscall ID
 			syscall, err := ptraceGetSyscall(pid)
 			if err != nil {
-				t.Error("ptraceGetSyscall failed. Error:", err.Error());
+				t.Error("ptraceGetSyscall failed. Error:", err.Error())
 			} else {
 				t.Logf("Get syscall with ID %d\n", syscall)
 			}
@@ -67,8 +67,8 @@ func do_Test_ptraceGetSyscall(t *testing.T, exe string, call int) {
 
 	// check the result
 	if cnt != 200 {
-		t.Errorf("We have only traced %d syscall enter and leave, " +
-		  "expect 200.", cnt);
+		t.Errorf("We have only traced %d syscall enter and leave, "+
+			"expect 200.", cnt)
 	}
 }
 

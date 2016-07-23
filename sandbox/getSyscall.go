@@ -22,9 +22,9 @@
 package sandbox
 
 import (
+	"golang.org/x/sys/unix"
 	"syscall"
 	"unsafe"
-	"golang.org/x/sys/unix"
 )
 
 var syscallIdAddr uintptr
@@ -51,12 +51,12 @@ func init() {
 	}
 
 	switch string(arch) {
-		case "x86_64" :
-			syscallIdAddr = 15 * 8 // ORIG_RAX
-		case "i386", "i486", "i586", "i686" :
-			syscallIdAddr = 11 * 4 // ORIG_EAX
-		default:
-			syscallIdAddr = 0
+	case "x86_64":
+		syscallIdAddr = 15 * 8 // ORIG_RAX
+	case "i386", "i486", "i586", "i686":
+		syscallIdAddr = 11 * 4 // ORIG_EAX
+	default:
+		syscallIdAddr = 0
 	}
 
 	if syscallIdAddr == 0 {
@@ -68,14 +68,14 @@ func init() {
 }
 
 // Wrap sys_ptrace to get syscall ID.
-func ptraceGetSyscall(pid int) (ID int, err error){
+func ptraceGetSyscall(pid int) (ID int, err error) {
 	var id uintptr
 
 	// In kernel the API of PTRACE_PEEKUSER is strange.
 	// We have to wrap it like Glibc.  See ptrace(2).
 	r1, _, e1 := unix.RawSyscall6(unix.SYS_PTRACE,
-	  unix.PTRACE_PEEKUSR, uintptr(pid),
-	  syscallIdAddr, uintptr(unsafe.Pointer(&id)), 0, 0)
+		unix.PTRACE_PEEKUSR, uintptr(pid),
+		syscallIdAddr, uintptr(unsafe.Pointer(&id)), 0, 0)
 
 	// r1 is unsigned
 	if r1 == ^uintptr(0) {

@@ -22,9 +22,9 @@
 package sandbox
 
 import (
+	"golang.org/x/sys/unix"
 	"syscall"
 	"unsafe"
-	"golang.org/x/sys/unix"
 )
 
 // Wrap sys_prlimit64.
@@ -32,10 +32,10 @@ import (
 // In Go, unix.Rlimit always contains 64-bit values. So we don't
 // need to process 32-bit rlimits like Glibc.
 func prlimit64(pid int, resource int, newLimit *unix.Rlimit,
-  oldLimit *unix.Rlimit) (err error) {
+	oldLimit *unix.Rlimit) (err error) {
 	_, _, e1 := unix.RawSyscall6(unix.SYS_PRLIMIT64,
-	  uintptr(pid), uintptr(resource), uintptr(unsafe.Pointer(newLimit)),
-	  uintptr(unsafe.Pointer(oldLimit)), 0, 0)
+		uintptr(pid), uintptr(resource), uintptr(unsafe.Pointer(newLimit)),
+		uintptr(unsafe.Pointer(oldLimit)), 0, 0)
 	if e1 != 0 {
 		err = syscall.Errno(e1)
 	}
