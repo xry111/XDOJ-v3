@@ -1,4 +1,4 @@
-// reg_386.go - x86 register specific
+// arch_386.go - x86 architecture specific
 // Copyright (C) 2016 Laboratory of ACM/ICPC, Xidian University
 
 // This is part of XDOJ-v3.

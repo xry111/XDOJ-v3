@@ -1,4 +1,4 @@
-// reg_amd64.go - x86-64 register specific
+// reg_amd64.go - x86-64 architecture specific
 // Copyright (C) 2016 Laboratory of ACM/ICPC, Xidian University
 
 // This is part of XDOJ-v3.
