@@ -23,6 +23,7 @@ package sandbox
 
 import (
 	"errors"
+	"github.com/xry111/XDOJ-v3/ojerror"
 	"golang.org/x/sys/unix"
 	"os"
 	"runtime"
@@ -68,6 +69,7 @@ func (c *Sandbox) run() (ret *RunResult, err error) {
 	var process *os.Process
 	process, err = os.StartProcess(c.Path, c.Args, c.Attr)
 	if err != nil {
+		err = ojerror.New(err)
 		return
 	}
 	pid := process.Pid
@@ -96,22 +98,27 @@ func (c *Sandbox) run() (ret *RunResult, err error) {
 	_, err = unix.Wait4(pid, &wstatus, 0, &rusage)
 	if wstatus.Exited() {
 		alive = false
-		err = errors.New("Child exited early. Seems a Go Runtime BUG.")
+		err = ojerror.New(errors.New(
+			"Child exited early. Seems a Go Runtime BUG."))
 		return
 	} else if wstatus.Signaled() {
 		alive = false
-		err = errors.New("Child signaled early. Maybe an OOM.")
+		err = ojerror.New(errors.New(
+			"Child signaled early. Maybe an OOM."))
 		return
 	} else if wstatus.StopSignal() != unix.SIGTRAP {
-		err = errors.New("Child stopped by an alien signal early.")
+		err = ojerror.New(errors.New(
+			"Child stopped by an alien signal early."))
 		return
 	} else {
 		call, err = ptraceGetSyscall(pid)
 		if err != nil {
+			err = ojerror.New(err)
 			return
 		}
 		if call != unix.SYS_EXECVE {
-			err = errors.New("Unexpected system call from child.")
+			err = ojerror.New(errors.New(
+				"Unexpected system call from child."))
 			return
 		}
 	}
@@ -125,6 +132,7 @@ func (c *Sandbox) run() (ret *RunResult, err error) {
 	rlimit.Max = cpuLimitSec
 	err = prlimit64(pid, unix.RLIMIT_CPU, &rlimit, nil)
 	if err != nil {
+		err = ojerror.New(err)
 		return
 	}
 
@@ -136,6 +144,7 @@ func (c *Sandbox) run() (ret *RunResult, err error) {
 	rlimit.Max = vmLimitByte
 	err = prlimit64(pid, unix.RLIMIT_AS, &rlimit, nil)
 	if err != nil {
+		err = ojerror.New(err)
 		return
 	}
 
@@ -144,7 +153,7 @@ func (c *Sandbox) run() (ret *RunResult, err error) {
 	rlimit.Max = uint64(c.RLimits.OutputLimit) << 10
 	err = prlimit64(pid, unix.RLIMIT_FSIZE, &rlimit, nil)
 	if err != nil {
-		err = errors.New("147")
+		err = ojerror.New(err)
 		return
 	}
 
@@ -155,6 +164,7 @@ func (c *Sandbox) run() (ret *RunResult, err error) {
 	// Let it go
 	err = unix.PtraceSyscall(pid, 0)
 	if err != nil {
+		err = ojerror.New(err)
 		return
 	}
 
@@ -164,6 +174,7 @@ func (c *Sandbox) run() (ret *RunResult, err error) {
 	for ret == nil {
 		_, err = unix.Wait4(pid, &wstatus, 0, &rusage)
 		if err != nil {
+			err = ojerror.New(err)
 			return
 		}
 
@@ -203,7 +214,7 @@ func (c *Sandbox) run() (ret *RunResult, err error) {
 
 				// Other errnos is out of tolerance. GG.
 				if err1 != nil {
-					err = err1
+					err = ojerror.New(err1)
 					return
 				}
 
@@ -211,6 +222,7 @@ func (c *Sandbox) run() (ret *RunResult, err error) {
 					result.IllegalSyscall = call
 					err = kill(pid)
 					if err != nil {
+						err = ojerror.New(err)
 						return
 					}
 				}
@@ -220,6 +232,7 @@ func (c *Sandbox) run() (ret *RunResult, err error) {
 				result.Status = -int(signal)
 				err = kill(pid)
 				if err != nil {
+					err = ojerror.New(err)
 					return
 				}
 			}
@@ -230,7 +243,7 @@ func (c *Sandbox) run() (ret *RunResult, err error) {
 			}
 
 			if err1 != nil {
-				err = err1
+				err = ojerror.New(err1)
 				return
 			}
 		}
