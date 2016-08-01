@@ -158,7 +158,7 @@ func (c *Sandbox) run() (ret *RunResult, err error) {
 	}
 
 	// Zero point usage
-	time0 := rusage.Utime.micro()
+	time0 := rusage.Utime.micro() + rusage.Stime.micro()
 	pf0 := rusage.Minflt
 
 	// Let it go
@@ -178,8 +178,8 @@ func (c *Sandbox) run() (ret *RunResult, err error) {
 			return
 		}
 
-		result.TimeCost =
-			int((rusage.Utime.micro() - time0 + 500) / 1000)
+		result.TimeCost = int((rusage.Utime.micro() +
+			rusage.Stime.micro() - time0 + 500) / 1000)
 		result.MemoryCost = int((rusage.Minflt - pf0) * pageSizeKB)
 
 		if wstatus.Exited() {
