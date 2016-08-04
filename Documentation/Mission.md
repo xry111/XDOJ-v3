@@ -29,6 +29,11 @@ or QEMU) will be avalible with detailed deployment documentation.
 We want OJ administrators and problem setters to manage XDOJ 3.x
 easily.
 
+### Enhanced Safety
+
+We have to ensure no submittions can rend XDOJ 3.x unuseable intentionally
+or not intentionally.
+
 ## High Priority Components
 
 `xdoj3-judged` would be jury of XDOJ 3.x. It compiles, runs, traces
@@ -42,5 +47,5 @@ from Web browser, to interact with participants and others.
 `xdoj3-sim` would calculate source code similarity, in order to help
 jurys to root out cheaters.
 
-`xdoj3-spj` would a library for problem setters to write special judges
+`xdoj3-spj` would be a library for problem setters to write special judges
 easily.
